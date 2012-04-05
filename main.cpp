@@ -1,6 +1,6 @@
 //***********************
 //***********************
-//   This file is messy but there are only a few things you need to know to adjust it.
+//   Notes for use:
 //
 //   First, you can adjust the exponent of the graph by setting EXPONENT
 // at the top of main(). Setting it to 2 will probably cause a crash. Setting it above 4
@@ -40,7 +40,7 @@ int main()
     //************************
     //************************
     const int MAX_ITERATIONS = 100;
-    const int EXPONENT = 4;
+    const int EXPONENT = 3;
     const bool USE_ALT_PATH_SYSTEM = true;
     //************************
     //************************
@@ -96,14 +96,6 @@ int main()
         }
 
 
-        //This will sort the products you built and stored in tempNodes into (probably) openNodes
-        ///graph.sortTempNodes();  now, this is handled in the loop above
-
-        //This sets the nodes whose products were just built as closed nodes, which ensures that they
-        //won't be the base nodes for the identities that are about to be generated
-        ///graph.setClosedNodes();  also handled in loop above
-
-
         //Generate identities from new product nodes; assign preservation to base nodes
         for (std::list< std::list<Node>::iterator >::iterator pn = identityBaseNodes.begin();
              pn != identityBaseNodes.end(); pn++)
@@ -115,111 +107,41 @@ int main()
         }
 
 
-        //Erase duplicate identities and destroy associated nodes
+        ///Ensure identity node does not get deleted before it has been processed
         for (std::list<Identity>::iterator pid = graph.getIdentBegin(); pid != graph.getIdentEnd(); pid++)
-        {
-            /*
-            std::cout << "IDENTITY: ";
-            pid->printIdent();
-            std::cout << "\n";
-            */
-            ///Ensure identity node does not get deleted before it has been processed
             (pid->getLeft())->setNodeType(Node::IDENT);
-        }
 
 
-        //Loop through identities; construct paths, reduce, and eliminate excess nodes for each one,
+        //Loop through identities; construct paths, reduce, and eliminate excess nodes for each identity,
         //assigning preservation as appropriate
         std::list<Identity>::iterator pid = graph.getIdentBegin();
         while (pid != graph.getIdentEnd())
         {
-            ///Use original system: build temp nodes, use iters to reduce and preserve
-            if (!USE_ALT_PATH_SYSTEM)
+            std::list< std::list<Node>::iterator > identityPath = graph.buildPath2(pid->getBase(), pid->getLeft());
+            if (identityPath.empty()) //this would be bad; it has never happened
             {
-
-                //Build path from base node to left node
-                if (!graph.buildPath(pid->getBase(), pid->getLeft())) //if path build unsuccessful
-                {
-                    std::cout << "PATH BUILD UNSUCCESSFUL FOR IDENTITY:\n";
-                    pid->printIdent();
-                    std::cout << std::endl;
-                }
-
-                //Reduce identity - but only if its RHS node was found
-                if (pid->getRight() != std::list<Node>::iterator(NULL))
-                {
-
-                    Identity reducedId = graph.reduceIdent(pid);
-
-
-                    //Assign preservation to nodes occuring before (and including) left reduced node
-                    graph.preservePath(reducedId.getBase(), reducedId.getLeft());
-
-
-                    //Delete excess nodes, assign type to remaining nodes
-                    graph.deleteTempNodes();
-                    for (std::list<Node>::iterator pln = graph.getNodeListBegin(); pln != graph.getNodeListEnd(); pln++)
-                        if (pln->isOpen())
-                            pln->setNodeType(Node::OPEN);
-                        else pln->setNodeType(Node::CLOSED);
-
-
-                    //Set the edges embodying the identity to be processed later by removeDuplicateNodes()
-                    graph.copyNodeEdges(reducedId.getLeft(), reducedId.getRight());
-                    graph.copyNodeEdges(reducedId.getRight(), reducedId.getLeft());
-
-                }
+                std::cout << "PATH BUILD UNSUCCESSFUL FOR IDENTITY:\n";
+                pid->printIdent();
+                std::cout << std::endl;
             }
-            else ///Use alt. system; pass path between various functions to reduce and preserve nodes
+            else
             {
+                //Reduce identity
+                Identity reducedId = graph.reduceIdent2(pid, identityPath);
 
-                std::list< std::list<Node>::iterator > identityPath = graph.buildPath2(pid->getBase(), pid->getLeft());
-                if (identityPath.empty())
-                {
-                    std::cout << "PATH BUILD UNSUCCESSFUL FOR IDENTITY:\n";
-                    pid->printIdent();
-                    std::cout << std::endl;
-                }
-                else
-                {
-                    /*
-                    ///TEST - ouput path
-                    std::cout << "PATH BUILT from ";
-                    (pid->getBase())->printWord();
-                    std::cout << " to ";
-                    (pid->getLeft())->printWord();
-                    std::cout << ":\n";
+                //Assign preservation to nodes occuring before (and including) left reduced node
+                graph.preservePath2(identityPath, reducedId.getLeft());
 
-                    for (std::list< std::list<Node>::iterator >::iterator ppath = identityPath.begin();
-                         ppath != identityPath.end(); ppath++)
-                    {
-                        (*ppath)->printWord();
-                        std::cout << "\n";
-                    }
-                    ///TEST
-                    */
+                //Delete excess nodes, assign type to remaining nodes
+                graph.deleteTempNodes();
+                for (std::list<Node>::iterator pln = graph.getNodeListBegin(); pln != graph.getNodeListEnd(); pln++)
+                    if (pln->isOpen())
+                        pln->setNodeType(Node::OPEN);
+                    else pln->setNodeType(Node::CLOSED);
 
-                    //Reduce identity
-                    Identity reducedId = graph.reduceIdent2(pid, identityPath);
-
-
-                    //Assign preservation to nodes occuring before (and including) left reduced node
-                    graph.preservePath2(identityPath, reducedId.getLeft());
-
-
-                    //Delete excess nodes, assign type to remaining nodes
-                    graph.deleteTempNodes();
-                    for (std::list<Node>::iterator pln = graph.getNodeListBegin(); pln != graph.getNodeListEnd(); pln++)
-                        if (pln->isOpen())
-                            pln->setNodeType(Node::OPEN);
-                        else pln->setNodeType(Node::CLOSED);
-
-
-                    //Set the edges embodying the identity to be processed later by removeDuplicateNodes()
-                    graph.copyNodeEdges(reducedId.getLeft(), reducedId.getRight());
-                    graph.copyNodeEdges(reducedId.getRight(), reducedId.getLeft());
-                }
-
+                //Set the edges embodying the identity to be processed later by removeDuplicateNodes()
+                graph.copyNodeEdges(reducedId.getLeft(), reducedId.getRight());
+                graph.copyNodeEdges(reducedId.getRight(), reducedId.getLeft());
             }
 
 
@@ -228,7 +150,8 @@ int main()
             graph.eraseIdent(pid);
             pid = graph.getIdentBegin();
 
-            ///REMOVE
+
+            //Just letting the user know what's going on
             std::cout << "\nCurrent graph size: " << graph.getSize() << " nodes";
 
         }
@@ -258,14 +181,10 @@ int main()
         }
 
 
-        ///Report and pause for input
+        ///Report some stuff
         //graph.report();
         std::cout << "\nCurrent iteration: " << iterationCounter;
         std::cout << "\nCurrent graph size: " << graph.getSize() << " nodes\n";
-        std::string spite;
-        std::cout << "Press any key to continue: ";
-        //std::cin >> spite;
-        std::cout << "\n";
         ///Continue
 
         iterationCounter++;
@@ -285,7 +204,9 @@ int main()
         std::cout << "\nUnfinished graph size: " << graph.getSize() << " nodes\n";
     }
 
-    ///Test; trying to get B(2,4) down to 4096 elements
+
+    ///Reducing the closed graph
+    ///
     std::string spuds;
     std::cout << "\nImplement last identities? (y/n): ";
     std::cin >> spuds;
@@ -331,7 +252,7 @@ int main()
         cin >> spuds;
     }
     ///
-    ///End of last identities section
+    ///End of graph reduction
 
 
     std::cout << "\nReport graph? (y/n)";

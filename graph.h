@@ -1,8 +1,8 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 #include <list>
-#include "identity.h" //graph includes a bank of identities
-#include "node.h"  //graph uses lists of nodes
+#include "identity.h"
+#include "node.h"
 
 class Graph
 {

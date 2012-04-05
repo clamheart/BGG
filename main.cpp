@@ -11,15 +11,10 @@
 //
 //   I marked EXPONENT and MAX_ITERATIONS below with little comment asterisk bars.
 //
-//   There is a new constant bool, USE_ALT_PATH_SYSTEM. This should be left with the value true. If it's set
-// tp false there's no telling what will happen (probably something bad).
-//
 //   Finally, output is currently streamed via console, and should be fairly straightforward to read
 // (although there is some junk between the reports which I've been using for diagnostic purposes).
 // By "x-edge" I refer to a pair (a, b) such that ax = b, and similarly for "y-edge". The graph
 // reports give you all the information needed to construct the graph which the Graph object represents.
-//
-//   The identities generated are written to the file "identities.txt" which can be found in the project folder.
 //***********************
 //***********************
 
@@ -41,7 +36,6 @@ int main()
     //************************
     const int MAX_ITERATIONS = 100;
     const int EXPONENT = 3;
-    const bool USE_ALT_PATH_SYSTEM = true;
     //************************
     //************************
 

@@ -1,6 +1,6 @@
 #ifndef IDENTITY_H_
 #define IDENTITY_H_
-#include <list>     //contains two std::list<Node>::iterators
+#include <list>
 #include <iostream>
 #include <fstream>
 #include "node.h"

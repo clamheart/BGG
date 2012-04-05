@@ -1,11 +1,11 @@
-#include "node.h"  //because graphs handle nodes
+#include "node.h"
 #include "graph.h"
 #include "identity.h"
-#include <vector>  //used to manipulate vector<short> objects
+#include <vector>
 #include <list>
-#include <iostream>  //to report graph information
-#include <ctime> //random number generation
-#include <cstdlib> //random "..."
+#include <iostream>
+#include <ctime>
+#include <cstdlib>
 
 //---
 //Graph function definitions, part III

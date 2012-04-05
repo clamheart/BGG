@@ -1,6 +1,6 @@
-#include "node.h"  //for Node declaration
-#include <vector>  //for vector stuff
-#include <iostream>  //console output in printWord
+#include "node.h"
+#include <vector>
+#include <iostream>
 
 //---
 //Node function definitions

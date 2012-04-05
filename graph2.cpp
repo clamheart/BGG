@@ -1,17 +1,14 @@
-#include "node.h"  //because graphs handle nodes
+#include "node.h"
 #include "graph.h"
 #include "identity.h"
-#include <vector>  //used to manipulate vector<short> objects
+#include <vector>
 #include <list>
-#include <iostream>  //to report graph information
-#include <fstream>  //writes freshly generated identities to "identities.txt"
+#include <iostream>
 
 //---
 //Graph function definitions, part II
 //---
 
-
-static bool firstCall = true;
 
 //Generate identities from the given open node and store them in identityBank
 void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearchPath, int iterationCounter)
@@ -34,21 +31,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         std::cout << "\nNOPEidentity\n";
         return;
     }
-
-    ///Write identities, in verifiable form, to "identities.txt"
-    std::ofstream fout, fout2;
-    if (firstCall == true)
-    {
-        fout.open("identities.txt"); //overwrite file on first call to genIdents()
-        fout2.open("identities_check.txt");
-        firstCall = false;
-    }
-    else
-    {
-        fout.open("identities.txt", std::ios_base::out | std::ios_base::app);  //append thereafter
-        fout2.open("identities_check.txt", std::ios_base::out | std::ios_base::app);
-    }
-    fout << "\nCurrent iteration: " << iterationCounter << "\n";
 
     int letterExponent = baseWord[0];
 
@@ -83,12 +65,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             plft--;
             Identity id(plft, nodeList.begin(), baseNode);  //1 is always the first closed node
             //and, finally, store it
-
-            ///Write identity to file
-            fout << "\nIdentity:";
-            id.printIdent(fout);
-            id.printIdentCheck(fout2);
-
             identityBank.push_back(id);
         }
 
@@ -113,23 +89,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 //baseWord is now x^(lE-i)(x^iy^r)^n = x^(lE-i). first build left node
                 Node lftNode(baseWord);
                 nodeList.push_back(lftNode);
-
-                ///Write identity to file
-                fout << "\nIdentity:\n";
-                lftNode.printWord(fout);
-                fout << " = ";
-                Node rNode(targetWord);
-                rNode.printWord(fout);
-                fout << " (base: ";
-                baseNode->printWord(fout);
-                fout << ")\n";
-
-                lftNode.printWordCheck(fout2);
-                fout2 << "\n";
-                rNode.printWordCheck(fout2);
-                fout2 << "\n";
-                baseNode->printWordCheck(fout2);
-                fout2 << "\n*\n";
 
                 //now form identity
                 std::list<Node>::iterator plft = nodeList.end();
@@ -193,23 +152,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             nodeList.push_back(lftNode);
             std::list<Node>::iterator plft = nodeList.end();
             plft--;
-
-            ///Write identity to file
-            fout << "\nIdentity:\n";
-            lftNode.printWord(fout);
-            fout << " = ";
-            Node rNode(targetWord);
-            rNode.printWord(fout);
-            fout << " (base: ";
-            baseNode->printWord(fout);
-            fout << ")\n";
-
-            lftNode.printWordCheck(fout2);
-            fout2 << "\n";
-            rNode.printWordCheck(fout2);
-            fout2 << "\n";
-            baseNode->printWordCheck(fout2);
-            fout2 << "\n*\n";
 
             std::list<Node>::iterator prt = searchNodes(&targetWord);
             if (prt == pnull)
@@ -279,23 +221,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         nodeList.push_back(lftNode);
         std::list<Node>::iterator plft = nodeList.end();
         plft--;
-
-        ///Write identity to file
-        fout << "\nIdentity:\n";
-        lftNode.printWord(fout);
-        fout << " = ";
-        Node rNode(targetWord);
-        rNode.printWord(fout);
-        fout << " (base: ";
-        baseNode->printWord(fout);
-        fout << ")\n";
-
-        lftNode.printWordCheck(fout2);
-        fout2 << "\n";
-        rNode.printWordCheck(fout2);
-        fout2 << "\n";
-        baseNode->printWordCheck(fout2);
-        fout2 << "\n*\n";
 
         std::list<Node>::iterator prt = searchNodes(&targetWord);
         if (prt == pnull)
@@ -381,10 +306,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 plft--;
                 Identity id (plft, nodeList.begin(), baseNode);
 
-                ///Write identity to file
-                fout << "\nIdentity:";
-                id.printIdent(fout);
-
                 identityBank.push_back(id);
             }
             else
@@ -403,13 +324,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 std::list<Node>::iterator plft = nodeList.end();
                 plft--;
                 Identity id (plft, nodeList.begin(), baseNode); //note: presumes first node is 1
-
-                ///Write identity to file
-                fout << "\nIdentity:";
-                id.printIdent(fout);
-                id.printIdentCheck(fout2);
-
-                identityBank.push_back(id);
 
             }
         }
@@ -450,23 +364,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
-
-                    ///Write identity to file
-                    fout << "\nIdentity:\n";
-                    lftNode.printWord(fout);
-                    fout << " = ";
-                    Node rNode(rightWord);
-                    rNode.printWord(fout);
-                    fout << " (base: ";
-                    baseNode->printWord(fout);
-                    fout << ")\n";
-
-                    lftNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    rNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    baseNode->printWordCheck(fout2);
-                    fout2 << "\n*\n";
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
@@ -524,23 +421,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
-
-                    ///Write identity to file
-                    fout << "\nIdentity:\n";
-                    lftNode.printWord(fout);
-                    fout << " = ";
-                    Node rNode(rightWord);
-                    rNode.printWord(fout);
-                    fout << " (base: ";
-                    baseNode->printWord(fout);
-                    fout << ")\n";
-
-                    lftNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    rNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    baseNode->printWordCheck(fout2);
-                    fout2 << "\n*\n";
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
@@ -603,23 +483,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
 
-                    ///Write identity to file
-                    fout << "\nIdentity:\n";
-                    lftNode.printWord(fout);
-                    fout << " = ";
-                    Node rNode(rightWord);
-                    rNode.printWord(fout);
-                    fout << " (base: ";
-                    baseNode->printWord(fout);
-                    fout << ")\n";
-
-                    lftNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    rNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    baseNode->printWordCheck(fout2);
-                    fout2 << "\n*\n";
-
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
                     std::list<Node>::iterator prt = searchNodes(&rightWord);
@@ -671,23 +534,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
-
-                    ///Write identity to file
-                    fout << "\nIdentity:\n";
-                    lftNode.printWord(fout);
-                    fout << " = ";
-                    Node rNode(rightWord);
-                    rNode.printWord(fout);
-                    fout << " (base: ";
-                    baseNode->printWord(fout);
-                    fout << ")\n";
-
-                    lftNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    rNode.printWordCheck(fout2);
-                    fout2 << "\n";
-                    baseNode->printWordCheck(fout2);
-                    fout2 << "\n*\n";
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
@@ -743,23 +589,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         Node lftNode(targetWord);
         nodeList.push_back(lftNode);
 
-        ///Write identity to file
-        fout << "\nIdentity:\n";
-        lftNode.printWord(fout);
-        fout << " = ";
-        Node rNode(rightWord);
-        rNode.printWord(fout);
-        fout << " (base: ";
-        baseNode->printWord(fout);
-        fout << ")\n";
-
-        lftNode.printWordCheck(fout2);
-        fout2 << "\n";
-        rNode.printWordCheck(fout2);
-        fout2 << "\n";
-        baseNode->printWordCheck(fout2);
-        fout2 << "\n*\n";
-
         std::list<Node>::iterator plft = nodeList.end();
         plft--;
         std::list<Node>::iterator prt = searchNodes(&rightWord);
@@ -811,23 +640,6 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             Node lftNode(targetWord);
             nodeList.push_back(lftNode);
 
-            ///Write identity to file
-            fout << "\nIdentity:\n";
-            lftNode.printWord(fout);
-            fout << " = ";
-            Node rNode(rightWord);
-            rNode.printWord(fout);
-            fout << " (base: ";
-            baseNode->printWord(fout);
-            fout << ")\n";
-
-            lftNode.printWordCheck(fout2);
-            fout2 << "\n";
-            rNode.printWordCheck(fout2);
-            fout2 << "\n";
-            baseNode->printWordCheck(fout2);
-            fout2 << "\n*\n";
-
             std::list<Node>::iterator plft = nodeList.end();
             plft--;
             std::list<Node>::iterator prt = searchNodes(&rightWord);
@@ -859,12 +671,8 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
             Identity id (plft, prt, baseNode);
             identityBank.push_back(id);
-
         }
     }
-
-    fout.close();
-    fout2.close();
 }
 
 

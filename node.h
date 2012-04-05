@@ -1,7 +1,7 @@
 #ifndef NODE_H_
 #define NODE_H_
-#include <vector>  //For elemname
-#include <list> //for node edges
+#include <vector>
+#include <list>
 #include <iostream>
 #include <fstream>
 

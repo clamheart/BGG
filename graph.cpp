@@ -511,6 +511,13 @@ std::list<Node>::iterator Graph::buildXprod(std::list<Node>::iterator pn)
     }
 
 
+    ///
+    ///
+    ///Testing with no search
+    ///
+    ///
+    ///
+    /*
     //At this point we know the product, if it exists, is the word we made above. So search
     //for that word and if found, connect an x-edge.
     std::list<Node>::iterator searchResult;
@@ -538,6 +545,13 @@ std::list<Node>::iterator Graph::buildXprod(std::list<Node>::iterator pn)
 
         return searchResult;
     }
+    */
+    ///
+    ///
+    ///Testing with no search
+    ///
+    ///
+    ///
 
 
     //Now we know that the x-product is not a built node of any form, so we must build it,
@@ -621,6 +635,15 @@ std::list<Node>::iterator Graph::buildYprod(std::list<Node>::iterator pn)
         return pnextNode;
     }
 
+
+
+    ///
+    ///
+    ///Testing with no search
+    ///
+    ///
+    ///
+    /*
     std::list<Node>::iterator searchResult;
     searchResult = searchNodes(&newWord);
     if (searchResult != pnull)
@@ -637,6 +660,13 @@ std::list<Node>::iterator Graph::buildYprod(std::list<Node>::iterator pn)
 
         return searchResult;
     }
+    */
+    ///
+    ///
+    ///Testing with no search
+    ///
+    ///
+    ///
 
     Node newNode(newWord);
     nodeList.push_back(newNode);

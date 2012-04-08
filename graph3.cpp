@@ -785,8 +785,11 @@ void Graph::generateIdentities2(int length, int numIdents)
 
         //now the node representing leftWord can be found and used to form new edges in the graph
         leftNode = searchPath(&leftWord);
-        copyNodeEdges(ident, leftNode);
-        copyNodeEdges(leftNode, ident);
+        if (leftNode != std::list<Node>::iterator(NULL)) //if word found
+        {
+            copyNodeEdges(ident, leftNode);
+            copyNodeEdges(leftNode, ident);
+        }
 
         //clear containers for the next pass through the loop
         leftWord.clear();

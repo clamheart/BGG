@@ -4,6 +4,9 @@
 #include <fstream>
 #include <list>
 
+//---
+//Identity function definitions
+//---
 
 //Constructors
 Identity::Identity()

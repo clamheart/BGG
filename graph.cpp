@@ -172,7 +172,7 @@ bool Graph::setYedge(std::list<Node>::iterator pn1, std::list<Node>::iterator pn
 }
 
 
-//searchTempNodes; searches nodeList for node based on word
+//searchNodes; searches nodeList for a node whose elemname member matches the given word
 std::list<Node>::iterator Graph::searchNodes(std::vector<short>* pvs)
 {
     std::vector<short> givenWord = *pvs;
@@ -214,7 +214,7 @@ void Graph::initStep()
     Node x1(tempElemName); //create x^1 node
     nodeList.push_back(x1);
 
-    //these iterators used to set edges between nodes in openNodes
+    //these iterators used to set edges between nodes
     std::list<Node>::iterator pln = nodeList.begin();
     std::list<Node>::iterator plntarget = pln;
     plntarget++;
@@ -238,7 +238,7 @@ void Graph::initStep()
     {
         tempWord[1] = i; //set y-exponent
         Node tempNode(tempWord);
-        nodeList.push_back(tempNode); //stick new node in openNodes
+        nodeList.push_back(tempNode); //insert new node in nodeList
         pln++;
         plntarget++;
         setYedge(pln, plntarget); //connect it by y to previous node
@@ -261,7 +261,7 @@ void Graph::initStep()
 
         //find start node in openNodes and set pstartNode iterator to it
         std::list<Node>::iterator pstartNode = searchNodes(&startWord);
-        if (pstartNode == std::list<Node>::iterator(NULL)) //this indicates the word was not found in openNodes;
+        if (pstartNode == std::list<Node>::iterator(NULL)) //this indicates the word was not found in nodeList;
             break;                                         //shouldn't happen
 
 
@@ -512,10 +512,7 @@ std::list<Node>::iterator Graph::buildXprod(std::list<Node>::iterator pn)
 
 
     ///
-    ///
-    ///Testing with no search
-    ///
-    ///
+    ///This block searches by word, and could be restored
     ///
     /*
     //At this point we know the product, if it exists, is the word we made above. So search
@@ -547,10 +544,7 @@ std::list<Node>::iterator Graph::buildXprod(std::list<Node>::iterator pn)
     }
     */
     ///
-    ///
-    ///Testing with no search
-    ///
-    ///
+    ///End of search block
     ///
 
 
@@ -638,10 +632,7 @@ std::list<Node>::iterator Graph::buildYprod(std::list<Node>::iterator pn)
 
 
     ///
-    ///
-    ///Testing with no search
-    ///
-    ///
+    ///This block searches by word, and could be restored
     ///
     /*
     std::list<Node>::iterator searchResult;
@@ -662,10 +653,7 @@ std::list<Node>::iterator Graph::buildYprod(std::list<Node>::iterator pn)
     }
     */
     ///
-    ///
-    ///Testing with no search
-    ///
-    ///
+    ///End of search block
     ///
 
     Node newNode(newWord);

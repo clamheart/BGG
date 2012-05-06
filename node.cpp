@@ -49,7 +49,7 @@ void Node::printWordCheck(std::ofstream& fout) const
 }
 
 
-//Clear duplicate edges
+//These functions clear duplicate nodes from their respective product lists.
 void Node::clearDuplicatesXout()
 {
     if (xout.empty())

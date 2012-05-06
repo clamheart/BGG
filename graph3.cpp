@@ -515,6 +515,200 @@ bool Graph::clearDuplicateNodes(std::list<Node>::iterator pn)
 }
 
 
+//Similar to clearDuplicateNodes(); inserts duplicate nodes into list instead of deleting them
+void Graph::insertDuplicateNodes(std::list<Node>::iterator pn, std::list< std::list<Node>::iterator >& deleteNodes)
+{
+    //If there are multiple nodes in the xin list then all these nodes are identical as group elements,
+    //so function will choose one to preserve and insert the rest into the given list.
+    if (pn->getSizeXin() > 1)
+    {
+        //Select the node with the least letters to preserve.
+        std::list<Node>::iterator preservedNode = pn->getXin();
+        int presSumExp = 0;
+        std::vector<short> presWord = preservedNode->getElemName();
+        for (int i = 0; i < presWord.size(); i++)
+            presSumExp += presWord[i];
+
+        std::list< std::list<Node>::iterator >::iterator plnIter;
+        for (plnIter = pn->getXinBegin(); plnIter != pn->getXinEnd(); plnIter++)
+        {
+            std::vector<short> word = (*plnIter)->getElemName();
+            int sumExponents = 0;  //counts number of letters total in the word
+            for (int i = 0; i < word.size(); i++)
+                sumExponents += word[i];
+
+            //In this case the node you have is the identity, which you definitely want to keep
+            if (sumExponents == 0)
+            {
+                preservedNode = *plnIter;
+                break;
+            }
+
+            //If word has less letters than the current preserved node, set it as preserved
+            if (sumExponents < presSumExp)
+            {
+                preservedNode = *plnIter;
+                presSumExp = sumExponents;
+            }
+        }
+
+        //At this point the node which is to be preserved has been chosen. Now copy the edges from the
+        //trash nodes to the preserved node and insert the trash nodes into the list.
+        plnIter = pn->getXinBegin();
+        while (plnIter != pn->getXinEnd())
+        {
+            //Ignore the preserved node
+            if ((*plnIter) == preservedNode)
+            {
+                plnIter++;
+                continue;
+            }
+
+            //Copy edges and add node to list
+            copyNodeEdges(*plnIter, preservedNode);
+            deleteNodes.push_back(*plnIter);
+            plnIter++;
+        }
+    }
+
+
+    //this is symmetrical to the above block
+    if (pn->getSizeYin() > 1)
+    {
+        std::list<Node>::iterator preservedNode = pn->getYin();
+        int presSumExp = 0;
+        std::vector<short> presWord = preservedNode->getElemName();
+        for (int i = 0; i < presWord.size(); i++)
+            presSumExp += presWord[i];
+
+        std::list< std::list<Node>::iterator >::iterator plnIter;
+        for (plnIter = pn->getYinBegin(); plnIter != pn->getYinEnd(); plnIter++)
+        {
+            std::vector<short> word = (*plnIter)->getElemName();
+            int sumExponents = 0;
+            for (int i = 0; i < word.size(); i++)
+                sumExponents += word[i];
+
+            if (sumExponents == 0)
+            {
+                preservedNode = *plnIter;
+                break;
+            }
+
+            if (sumExponents < presSumExp)
+            {
+                preservedNode = *plnIter;
+                presSumExp = sumExponents;
+            }
+        }
+
+        plnIter = pn->getYinBegin();
+        while (plnIter != pn->getYinEnd())
+        {
+            if ((*plnIter) == preservedNode)
+            {
+                plnIter++;
+                continue;
+            }
+
+            copyNodeEdges(*plnIter, preservedNode);
+            deleteNodes.push_back(*plnIter);
+            plnIter++;
+        }
+    }
+
+
+    if (pn->getSizeXout() > 1)
+    {
+        std::list<Node>::iterator preservedNode = pn->getXout();
+        int presSumExp = 0;
+        std::vector<short> presWord = preservedNode->getElemName();
+        for (int i = 0; i < presWord.size(); i++)
+            presSumExp += presWord[i];
+
+        std::list< std::list<Node>::iterator >::iterator plnIter;
+        for (plnIter = pn->getXoutBegin(); plnIter != pn->getXoutEnd(); plnIter++)
+        {
+            std::vector<short> word = (*plnIter)->getElemName();
+            int sumExponents = 0;
+            for (int i = 0; i < word.size(); i++)
+                sumExponents += word[i];
+
+            if (sumExponents == 0)
+            {
+                preservedNode = *plnIter;
+                break;
+            }
+
+            if (sumExponents < presSumExp)
+            {
+                preservedNode = *plnIter;
+                presSumExp = sumExponents;
+            }
+        }
+
+        plnIter = pn->getXoutBegin();
+        while (plnIter != pn->getXoutEnd())
+        {
+            if ((*plnIter) == preservedNode)
+            {
+                plnIter++;
+                continue;
+            }
+
+            copyNodeEdges(*plnIter, preservedNode);
+            deleteNodes.push_back(*plnIter);
+            plnIter++;
+        }
+    }
+
+
+    if (pn->getSizeYout() > 1)
+    {
+        std::list<Node>::iterator preservedNode = pn->getYout();
+        int presSumExp = 0;
+        std::vector<short> presWord = preservedNode->getElemName();
+        for (int i = 0; i < presWord.size(); i++)
+            presSumExp += presWord[i];
+
+        std::list< std::list<Node>::iterator >::iterator plnIter;
+        for (plnIter = pn->getYoutBegin(); plnIter != pn->getYoutEnd(); plnIter++)
+        {
+            std::vector<short> word = (*plnIter)->getElemName();
+            int sumExponents = 0;
+            for (int i = 0; i < word.size(); i++)
+                sumExponents += word[i];
+
+            if (sumExponents == 0)
+            {
+                preservedNode = *plnIter;
+                break;
+            }
+
+            if (sumExponents < presSumExp)
+            {
+                preservedNode = *plnIter;
+                presSumExp = sumExponents;
+            }
+        }
+
+        plnIter = pn->getYoutBegin();
+        while (plnIter != pn->getYoutEnd())
+        {
+            if ((*plnIter) == preservedNode)
+            {
+                plnIter++;
+                continue;
+            }
+
+            copyNodeEdges(*plnIter, preservedNode);
+            deleteNodes.push_back(*plnIter);
+            plnIter++;
+        }
+    }
+}
+
+
 //Find node by tracing path to given word or return pnull if not found
 std::list<Node>::iterator Graph::searchPath(std::vector<short>* ptargetWord)
 {
@@ -747,7 +941,6 @@ void Graph::preservePath2(std::list< std::list<Node>::iterator >& pidPath, std::
 
 
 //Generate different kind of identities
-///Currently this is to be used once the graph is finished
 void Graph::generateIdentities2(int length, int numIdents)
 {
     if (length % 2 == 1) //only even lengths - easier to make identities
@@ -759,13 +952,13 @@ void Graph::generateIdentities2(int length, int numIdents)
     if (numIdents <= 0) //can't generate nonpositively many identities
         return;
 
-    ///This function generates numIdents-many identities using blocks of length-many units, raised to
-    ///the power of the graph's exponent, which naturally makes them equivalent to the identity.
-    ///Rather than forming identity objects it just sets more edges in the graph, and then
-    ///trusts in the user to reduce those edges later.
+    //This function generates numIdents-many identities using blocks of length-many units, raised to
+    //the power of the graph's exponent, which naturally makes them equivalent to the identity.
+    //Rather than forming identity objects it just sets more edges in the graph, and then
+    //trusts in the user to reduce those edges later.
 
     short block[length]; //used to fill leftWord
-    std::vector<short> leftWord; //represents the word that redudes to the identity
+    std::vector<short> leftWord; //represents the word that reduces to the identity
     std::list<Node>::iterator leftNode; //the node representing the word leftWord
     std::list<Node>::iterator ident = nodeList.begin(); //the identity of the group
 

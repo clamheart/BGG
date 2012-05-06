@@ -5,6 +5,10 @@
 #include <fstream>
 #include "node.h"
 
+//Identity objects represent identities between group elements. The words from the left node and
+//the right node are equal as group elements; the base node is the input to
+//Graph::generateIdentities() which formed the identity object
+
 class Identity
 {
 private:

@@ -1,26 +1,4 @@
-//***********************
-//***********************
-//   Notes for use:
-//
-//   First, you can adjust the exponent of the graph by setting EXPONENT
-// at the top of main(). Setting it to 2 will probably cause a crash. Setting it above 4
-// will produce a very large graph.
-//
-//   Second, you can adjust the number of times the main loop will run by setting MAX_ITERATIONS,
-// also at the top of main(). It takes less than 7 iterations to finish the graphs of B(2,3) and B(2,4).
-//
-//   I marked EXPONENT and MAX_ITERATIONS below with comment asterisk bars.
-//
-//   Finally, output is currently streamed via console, and should be fairly straightforward to read
-// (although there is some junk between the reports which I've been using for diagnostic purposes).
-// By "x-edge" I refer to a pair (a, b) such that ax = b, and similarly for "y-edge". The graph
-// reports give you all the information needed to construct the graph which the Graph object represents.
-//***********************
-//***********************
-
-
 #include <iostream>
-#include "declarations.h"
 #include "node.h"
 #include "graph.h"
 #include "identity.h"
@@ -32,18 +10,16 @@ using namespace std;
 
 int main()
 {
-    //************************
-    //************************
+    //MAX_ITERATIONS limits the number of times that the main loop which extends the graph will run.
     const int MAX_ITERATIONS = 100;
-    const int EXPONENT = 5;
-    //************************
-    //************************
 
+    //EXPONENT is the exponent of the graph.
+    const int EXPONENT = 3;
 
-    //Seed the random number generator
+    //Seed random number generator
     srand(time(0));
 
-    //Create the Graph object with user-defined exponent
+    //Initialize the Graph object with user-defined exponent
     Graph graph(EXPONENT);
 
     //Create the first base graph and report its contents
@@ -56,10 +32,11 @@ int main()
     std::cin >> spurn;
     //Continue
 
-    int iterationCounter = 0;  //counts how many graph iterations have occured; used to stop main loop in case
+    int iterationCounter = 0;  //Counts how many graph iterations have occured; used to stop main loop in case
                                //it goes on for too long (whatever that may be)
 
-    std::list<Node>::iterator pnull = std::list<Node>::iterator(NULL);  //used to detect null iterators
+    std::list<Node>::iterator pnull = std::list<Node>::iterator(NULL);  //Used to detect null iterators, which
+                                                                        //are used as error indicators
 
 
     //This is the main loop that will build the graph. It terminates when either every node has a defined x product
@@ -69,7 +46,7 @@ int main()
 
         std::list< std::list<Node>::iterator > identityBaseNodes;
 
-        //Loop over all nodes in the graph; if a node does no have a defined x or y product, build it and store
+        //Loop over all nodes in the graph; if a node does not have a defined x or y product, build it and store
         //a pointer to the new node(s) in identityBaseNodes. Then set the original node to CLOSED.
         for (std::list<Node>::iterator pn = graph.getNodeListBegin(); pn != graph.getNodeListEnd(); pn++)
         {
@@ -103,7 +80,7 @@ int main()
         }
 
 
-        //The identityBank data member of our Graph object is now populated with Identity objects. This
+        //The identityBank data member of the Graph object is now populated with Identity objects. This
         //loop sets the left node of each Identity to type IDENT, ensuring that it is not deleted
         //prematurely.
         for (std::list<Identity>::iterator pid = graph.getIdentBegin(); pid != graph.getIdentEnd(); pid++)
@@ -136,6 +113,9 @@ int main()
                 //they are not deleted in the next step.
                 graph.preservePath2(identityPath, reducedId.getLeft());
 
+
+                   ///Below could be made more efficient by deleting only those temp nodes in the path, and
+                   ///deleting the rest of the temp nodes in the graph at a later time (after loop)
                 //Delete all nodes which were not preserved above. Then loop through the remaining nodes
                 //and assign to each node the correct type (either OPEN or CLOSED).
                 graph.deleteTempNodes();
@@ -146,20 +126,19 @@ int main()
 
 
                 //The left node and right node of reducedId are the same as group elements. These functions copy
-                //the nodes between each node's product lists, making them larger; the program will later detect
+                //the nodes between each node's product lists; the program will later detect
                 //that there are multiple nodes in these product lists and use them to reduce the graph.
                 graph.copyNodeEdges(reducedId.getLeft(), reducedId.getRight());
                 graph.copyNodeEdges(reducedId.getRight(), reducedId.getLeft());
             }
 
 
-            //Identity has been processed; delete IDENT node, remove it from identityBank, and reset iterator
+            //Identity has been processed; delete IDENT node, remove the identity from identityBank, and reset iterator
             graph.removeNode(pid->getLeft());
             graph.eraseIdent(pid);
             pid = graph.getIdentBegin();
 
 
-            //Just letting the user know what's going on
             std::cout << "\nCurrent graph size: " << graph.getSize() << " nodes";
 
         }
@@ -167,12 +146,15 @@ int main()
 
         //Implements several identities of a different form. generateIdentities2() randomly
         //generates identities of a certain form and implements them in the graph by adjusting
-        //the product lists of appropriate nodes. For details see function definition in graph3.cpp
+        //the product lists of appropriate nodes. For details see function definition in graph3.cpp or
+        //project paper.
         graph.generateIdentities2(4, 1000);
         graph.generateIdentities2(6, 1000);
         graph.generateIdentities2(8, 1000);
         graph.generateIdentities2(10, 1000);
         graph.generateIdentities2(12, 1000);
+        graph.generateIdentities2(14, 1000);
+        graph.generateIdentities2(16, 1000);
 
 
         //Detect nodes in the graph that are the same as group elements, and delete all but one of them,
@@ -193,8 +175,7 @@ int main()
                     pnRudolpho++; //otherwise go to the next node
             }
 
-            //Search for "x-cycles" and "y-cycles" in the graph and set edges to close them. Definition found
-            //in project paper.
+            //Search for "x-cycles" and "y-cycles" in the graph and set edges to close them.
             if (graph.findXcycle())
                 cyclesSet = true;
             if (graph.findYcycle())
@@ -205,7 +186,7 @@ int main()
         }
 
 
-        //Report status
+        //Print information about the current state of the program to console.
         std::cout << "\nCurrent iteration: " << iterationCounter;
         std::cout << "\nCurrent graph size: " << graph.getSize() << " nodes\n";
 
@@ -213,19 +194,21 @@ int main()
     }
 
 
-    //Print results
+    //Print final state to console.
     if (graph.isFinished())
         std::cout << "\nFinished graph size: " << graph.getSize() << " nodes\n";
     else
         std::cout << "\nUnfinished graph size: " << graph.getSize() << " nodes\n";
 
 
-    ///Reducing the closed graph
-    ///
+
+    //At this point the graph, if finished, has a defined x and y product for every node. However it may contain
+    //nodes which are the same as group elements. This section allows the user to input values to generate
+    //new identities which may further reduce the size of the graph.
     std::string spuds;
     std::cout << "\nImplement last identities? (y/n): ";
     std::cin >> spuds;
-    ///Creates random identities of a certain length
+
     while (spuds[0] == 'y')
     {
         int length;
@@ -238,7 +221,7 @@ int main()
 
         graph.generateIdentities2(length, numIdents);
 
-        ///Clear duplicate nodes
+        //This is the same loop as above, which detects duplicate nodes and reduces the graph.
         bool cyclesSet2 = true;
         while (cyclesSet2)
         {
@@ -247,44 +230,28 @@ int main()
             std::list<Node>::iterator pnRudolpho2 = graph.getNodeListBegin();
             while (pnRudolpho2 != graph.getNodeListEnd())
             {
-                if (graph.clearDuplicateNodes(pnRudolpho2)) //if duplicate nodes were found
-                    pnRudolpho2 = graph.getNodeListBegin(); //then reset iterator
+                if (graph.clearDuplicateNodes(pnRudolpho2))
+                    pnRudolpho2 = graph.getNodeListBegin();
                 else
-                    pnRudolpho2++; //otherwise go to the next node
+                    pnRudolpho2++;
             }
 
             if (graph.findXcycle())
                 cyclesSet2 = true;
             if (graph.findYcycle())
                 cyclesSet2 = true;
-
-            //If cycles were found and new edges were set in find<>cycle(), then loop will repeat
         }
 
+        //User may enter new values to start another round of identity generation/graph reduction.
         std::cout << "\nGraph size: " << graph.getSize() << "\n";
         std::cout << "\nImplement more identities? (y/n): ";
         spuds.clear();
         cin >> spuds;
     }
-    ///
-    ///End of graph reduction
 
-
-    std::cout << "\nReport graph? (y/n)";
-    std::string spool;
-    cin >> spool;
-    if (spool[0] == 'y')
-        graph.report();
-
-    ///REMOVE
-    ///(for serious)
-    std::fstream fout("graph.txt");
+    //Print graph information to file graphinfo.txt
+    std::ofstream fout("graphinfo.txt");
     graph.report(fout);
-    ///REMOVE
-    ///(really for serious)
-
-    std::string spark;
-    std::cout << "\nPress any key to exit: ";
-    std::cin >> spark;
 }
+
 

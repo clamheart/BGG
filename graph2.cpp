@@ -11,9 +11,10 @@
 
 
 //Generate identities from the given open node and store them in identityBank
+//First type of identity generation; uses a node as input
 void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearchPath, int iterationCounter)
 {
-    //don't try to manipulate a nonexistent node
+    //If baseNode is a null pointer, return.
     std::list<Node>::iterator pnull = std::list<Node>::iterator(NULL);
     if (baseNode == pnull)
     {
@@ -23,7 +24,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
     std::vector<short> baseWord = baseNode->getElemName();
 
-    //don't generate identities if given node 1 (the identity)
+    //If baseNode is the identity, return.
     std::vector<short> one;
     one.push_back(0);
     if (baseNode->getElemName() == one)
@@ -32,18 +33,29 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         return;
     }
 
-    int letterExponent = baseWord[0];
+    int letterExponent = baseWord[0];  //abbreviated lE
 
-    //handle words of length 1 and length 2 as separate cases
+
+    //Procedure:
+    //(1) Determine into which case the given node falls
+    //(2) Based on that case, select and create a target word
+    //(3) Look for a node labelled with the target word; if found, create identity and store in graph
+    //(4) Repeat (2), (3) until all identity objects have been created
+    //(5) Return
+
+
+    //Handle words with 1 and 2 syllables as separate cases
+    //Case: 1 syllable
     if (baseWord.size() == 1)
     {
-        //In this case g = x^k for some 0 < k < n. We generate identities by splitting this product
-        //and forming a block (x^ry^s)^n which reduces to the identity, and sort of wedging it into g
+        //In this case g = x^k for some 0 < k < n. For 0 <= i < n, 0 < r < n, form identities:
+        //      g(x^(k-i)y^r)^n = x^i
+        //Each value of i and r gives a new identity.
 
 
-        //would loop from 0 to letterExponent - 1, but 0 is a special case handled first
+        //Handle subcase i = 0
         int i = 0;
-        //loop over exponent on y^r, forming an identity for each one
+        //loop over exponent on y^r, forming an identity for each value of r
         for (int r = 1; r < exponent; r++)
         {
             baseWord = baseNode->getElemName();
@@ -55,21 +67,19 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 baseWord.push_back(letterExponent); //append x^lE
                 baseWord.push_back(r);  //append y^r; baseWord is now (x^lEy^r)^(k+1)
             }
-            //baseWord is now (x^1Ey^r)^n = 1.
+            //baseWord is now (x^1Ey^r)^n = 1
 
-            //first build the left node
+            //Build and store identity object.
             Node lftNode(baseWord);
             nodeList.push_back(lftNode);
-            //now form an identity with these words
             std::list<Node>::iterator plft = nodeList.end();
             plft--;
-            Identity id(plft, nodeList.begin(), baseNode);  //1 is always the first closed node
-            //and, finally, store it
+            Identity id(plft, nodeList.begin(), baseNode);  //1 is always the first node
             identityBank.push_back(id);
         }
 
 
-        //now loop over i from 1 to letterExponent - 1, this time splitting x^lE
+        //Handle cases 1 <= i < letterExponent
         for (i = 1; i < letterExponent; i++)
         {
             //x^i is the part separated from the first letter, so x^lE = x^(lE-i)x^i
@@ -90,10 +100,13 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 Node lftNode(baseWord);
                 nodeList.push_back(lftNode);
 
-                //now form identity
+                //build right node
                 std::list<Node>::iterator plft = nodeList.end();
-                plft--;  //points to lftNode we just stuck in tempNodes
-                std::list<Node>::iterator prt = searchNodes(&targetWord);  //points to RHS node
+                plft--;  //points to lftNode
+                ///std::list<Node>::iterator prt = searchNodes(&targetWord);  //points to RHS node
+                std::list<Node>::iterator prt = pnull;
+
+                //If searchNodes failed to find RHS node, use searchPath; if both fail, return.
                 if (prt == pnull)
                 {
                     //Function will return, or attempt to use searchPath() to find the RHS node,
@@ -119,22 +132,30 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         return;
                     }
                 }
+
+                //Build and store identity object.
                 Identity id(plft, prt, baseNode);
-                //and, finally, store identity
                 identityBank.push_back(id);
             }
         }
 
-        return; //end of case length = 1
+        return; //end of case 1 syllable
     }
 
 
-    //case word has length 2
+    //Case: 2 syllables
     if (baseWord.size() == 2)
     {
-        int xletterExp = baseWord[0];
-        int yletterExp = baseWord[1];
+        int xletterExp = baseWord[0];   //abbreviated xlE
+        int yletterExp = baseWord[1];   //abbreviated ylE
 
+
+        //In this case g = x^(xlE)y^(ylE) for some 0 < k < n. For 0 < i < xlE, form identities:
+        //      g(x^(xlE-i)y^(ylE))^(n-1) = x^i
+        //Each value of i gives a new identity.
+
+
+        //Build an identity for each value of i, 0 < i < xlE
         for (int i = 1; i < xletterExp; i++)
         {
             baseWord = baseNode->getElemName(); //reset baseWord to x^(xlE)y^(ylE)
@@ -153,7 +174,9 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             std::list<Node>::iterator plft = nodeList.end();
             plft--;
 
-            std::list<Node>::iterator prt = searchNodes(&targetWord);
+            //If searchNodes failed to find RHS node, use searchPath; if both fail, return.
+            ///std::list<Node>::iterator prt = searchNodes(&targetWord);
+            std::list<Node>::iterator prt = pnull;
             if (prt == pnull)
             {
 
@@ -181,48 +204,62 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 }
             }
 
+            //Build and store identity object
             Identity id(plft, prt, baseNode);
             identityBank.push_back(id);
         }
 
-        return; //end of case length 2
+        return; //end of case 2 syllables
     }
 
-    //
-    //Here begins case length >= 3
-    //
 
-    //This determines whether the last letter is x or y (x is 1/true, y is 0/false)
+
+    //Case: 3 or more syllables
+    //(the remainder of the function is devoted to this case, and subcases)
+
+    //The exponents on the last three syllables, in order from left to right
+    int exp1 = baseWord[baseWord.size() - 3];  //abbreviated e1
+    int exp2 = baseWord[baseWord.size() - 2];  //abbreviated e2
+    int exp3 = baseWord[baseWord.size() - 1];  //abbreviated e3
+
+
+    //In this case g = ur^(e1)s^(e2)r^(e3). Either (r = x, s = y) or (r = y, s = x).
+    //There are several subcases depending on the values of e1, e2, and e3.
+
+
+    //Determine whether the last letter is x or y (x is 1/true, y is 0/false)
     bool lastLetterIndicator = baseWord.size() % 2;
 
-    //The exponents on the last three letters, in order from left to right
-    int exp1 = baseWord[baseWord.size() - 3];
-    int exp2 = baseWord[baseWord.size() - 2];
-    int exp3 = baseWord[baseWord.size() - 1];
-
+    //Subcase: e3 < e1
     if (exp3 < exp1)
     {
-        //need to stick all but last 3 letters on targetWord
+        //In this case form identity:
+        //      gs^(e2)r^(e3)(s^(e2)r^(e3))^(n-2) = ur^(e1-e3)
+
+        //Set targetWord as RHS word
         std::vector<short> targetWord = baseWord;
         targetWord.pop_back();
         targetWord.pop_back();
         targetWord.pop_back();
         targetWord.push_back(exp1 - exp3);
 
+        //Set baseWord as LHS word
         baseWord.push_back(exp2);
         for (int i = 1; i <= exponent - 2; i++)
         {
             baseWord.push_back(exp3);
             baseWord.push_back(exp2);
         }
-        //words now set
 
+        //Build nodes
         Node lftNode(baseWord);
         nodeList.push_back(lftNode);
         std::list<Node>::iterator plft = nodeList.end();
         plft--;
 
-        std::list<Node>::iterator prt = searchNodes(&targetWord);
+        //If searchNodes failed to find RHS node, use searchPath; if both fail, return.
+        ///std::list<Node>::iterator prt = searchNodes(&targetWord);
+        std::list<Node>::iterator prt = pnull;
         if (prt == pnull)
         {
             //Function will return, or attempt to use searchPath() to find the RHS node,
@@ -249,10 +286,13 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             }
         }
 
+        //Build and store identity object
         Identity id(plft, prt, baseNode);
         identityBank.push_back(id);
 
-    }
+    }  //end of subcase e3 < e1
+
+    //Subcase: e1 = e3
     else if (exp1 == exp3)
     {
         std::vector<short> startSeg = baseWord;
@@ -260,13 +300,17 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         startSeg.pop_back();
         startSeg.pop_back();
 
-        //startSeg is the segment of baseWord before the last three letters. You need to
-        //search this segment from right to left to find the first letter that is neither
-        //r^k1 nor s^k2
+        //startSeg is the segment of baseWord before the last three letters. Function searches
+        //this segment from right to left to find the first syllable that is neither
+        //r^k1 nor s^k2. This is referred to as the nonconforming syllable. Based on the result of this search,
+        //different identities are generated.
 
         bool letterSwitch = true;
         std::vector<short>::reverse_iterator prv;
-        int lettersTraversed = 3; //counts num letters from nonconf letter to end (not including nonconf)
+        int lettersTraversed = 3; //counts number of syllables from nonconf syllable
+                                  //to end (not including nonconf)
+
+        //Search startSeg for nonconf letter
         for (prv = startSeg.rbegin(); prv != startSeg.rend(); prv++)
         {
             if (letterSwitch)
@@ -286,12 +330,19 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
         //if looped through whole word without finding a nonconforming letter
         if (prv == startSeg.rend())
         {
-            //particulars of base word depend on last letter
+            //The identity formed depends on the last syllable (if it's x^(e3) or y^(e3)).
 
-            if (lastLetterIndicator) //if last letter is x
+            if (lastLetterIndicator) //if last syllable is x
             {
+
                 std::vector<short> targetWord = baseWord;
                 int m = (targetWord.size() - 1) / 2;  //number of blocks already present
+
+                //In this case we have
+                //      g = (x^(e1)y^(e2))^mx^(e1)
+                //and derive the identity
+                //      gy^(e2)(x^(e1)y^(e2))^(n-m-1) = 1
+
                 targetWord.push_back(exp2);
                 for (int i = 1; i <= exponent - m - 1; i++)
                 {
@@ -300,18 +351,24 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 }
                 //now targetWord is (x^e1y^e2)^n = 1
 
+                //Build and store identity
                 Node lftNode(targetWord);
                 nodeList.push_back(lftNode);
                 std::list<Node>::iterator plft = nodeList.end();
                 plft--;
                 Identity id (plft, nodeList.begin(), baseNode);
-
                 identityBank.push_back(id);
             }
-            else
+            else  //if last syllable is y
             {
                 std::vector<short> targetWord = baseWord;
                 int m = targetWord.size() / 2;  //number of blocks already present
+
+                //In this case we have
+                //      g = (x^(e2)y^(e1))^m
+                //and derive the identity
+                //      g(x^(e2)y^(e1))^(n-m) = 1
+
                 for (int i = 1; i <= exponent - m; i++)
                 {
                     targetWord.push_back(exp2);
@@ -319,19 +376,29 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 }
                 //now targetWord is (x^e2y^e1)^n = 1
 
+                //Build and store identity
                 Node lftNode(targetWord);
                 nodeList.push_back(lftNode);
                 std::list<Node>::iterator plft = nodeList.end();
                 plft--;
                 Identity id (plft, nodeList.begin(), baseNode); //note: presumes first node is 1
-
+                identityBank.push_back(id);
             }
         }
-        else //found a nonconforming letter, to which prv now points
+        else //found a nonconf syllable, to which prv now points
         {
-            //determine what letter prv points to
+
+            //Recall
+            //  g = ur^(e1)s^(e2)r^(e3)
+            //and under this case e1 = e3 so
+            //  g = ur^(e1)s^(e2)r^(e1)
+            //These next subcases are determined by the nonconf syllable in u and the exponent
+            //on that syllable.
+
+
+            //Determine what letter prv points to (the letter of the nonconf syllable)
             int prvIndex = 1;
-            //awkward use of reverse_iterator enables comparison to prv, which is a reverse iterator
+            //(awkward use of reverse_iterator enables comparison to prv, which is a reverse iterator)
             std::vector<short>::reverse_iterator pv = startSeg.rend();
             pv--;  //pv points to startSeg[0]
             for (pv = pv; pv != prv; pv--)
@@ -340,13 +407,20 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             //if true, prv points to x; if false, prv points to y
             bool nonConfLetterType = prvIndex % 2;
 
-            if (nonConfLetterType != lastLetterIndicator) //if nonconforming letter is different from last letter
+
+            //Different identities are formed depending on the nonconf syllable.
+            if (nonConfLetterType != lastLetterIndicator) //if nonconf letter is different from last letter
             {
-                //now do different things depending on exponent of nonconforming letter
+                //Different identities are formed depending on the exponent on the nonconf syllable.
+                //((*prv) is the exponent on the nonconf syllable)
                 if (*prv > exp2)
                 {
-                    //in this case we can separate s^*prv
 
+                    //In this case the nonconf syllable is s^k and k > e2. Form identity
+                    //      g(s^(e2)r^(e1))^(n-m) = u's^(k-e2)
+                    //where u' is the part of g before the nonconf syllable (m is defined below).
+
+                    //Build RHS word
                     std::vector<short> rightWord;
                     std::vector<short>::reverse_iterator pv = startSeg.rend();
                     pv--;  //pv now points to startSeg[0]
@@ -354,6 +428,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         rightWord.push_back(*pv);
                     rightWord.push_back(*prv - exp2);
 
+                    //Build LHS word
                     std::vector<short> targetWord = baseWord;
                     int m = (lettersTraversed + 1) / 2; //number of blocks already present
                     for (int i = 1; i <= exponent - m; i++)
@@ -362,12 +437,14 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         targetWord.push_back(exp1);
                     }
 
+                    //Build nodes representing words
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
-                    std::list<Node>::iterator prt = searchNodes(&rightWord);
+                    ///std::list<Node>::iterator prt = searchNodes(&rightWord);
+                    std::list<Node>::iterator prt = pnull;
                     if (prt == pnull)
                     {
 
@@ -395,14 +472,19 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         }
                     }
 
+                    //Build and store identity
                     Identity id (plft, prt, baseNode);
                     identityBank.push_back(id);
 
                 }
-                else //if *prv < exp2; note that it cannot be equal, as that would put it in a previous case
+                else //if *prv < exp2; note that it cannot be equal, as that would put us in a previous case
                 {
-                    //in this case we cannot separate s^*prv so we leave it. note block is inverted
 
+                    //In this case the nonconf syllable is s^k and k > e2. Form identity
+                    //      gs^(e2)(r^(e1)s^(e2))^(n-m-1) = u's^k
+                    //where u' is the part of g before the nonconf syllable (m is defined below).
+
+                    //Build RHS word
                     std::vector<short> rightWord;
                     std::vector<short>::reverse_iterator pv = startSeg.rend();
                     pv--;
@@ -410,6 +492,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         rightWord.push_back(*pv);
                     rightWord.push_back(*prv);
 
+                    //Build LHS word
                     std::vector<short> targetWord = baseWord;
                     int m = (lettersTraversed - 1) / 2; //number of blocks already present
                     targetWord.push_back(exp2);
@@ -419,12 +502,14 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         targetWord.push_back(exp2);
                     }
 
+                    //Builds nodes representing words
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
-                    std::list<Node>::iterator prt = searchNodes(&rightWord);
+                    ///std::list<Node>::iterator prt = searchNodes(&rightWord);
+                    std::list<Node>::iterator prt = pnull;
                     if (prt == pnull)
                     {
 
@@ -452,6 +537,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         }
                     }
 
+                    //Build and store identity
                     Identity id (plft, prt, baseNode);
                     identityBank.push_back(id);
 
@@ -461,8 +547,12 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             {
                 if (*prv > exp1)
                 {
-                    //in this case we can separate sr^*prv
 
+                    //In this case the nonconf syllable is r^k and k > e1. Form identity
+                    //      gs^(e2)(r^(e1)s^(e2))^(n-m-1) = u'r^(k-e1)
+                    //where u' is the part of g before the nonconf syllable (m is defined below).
+
+                    //Build RHS word
                     std::vector<short> rightWord;
                     std::vector<short>::reverse_iterator pv = startSeg.rend();
                     pv--;
@@ -470,6 +560,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         rightWord.push_back(*pv);
                     rightWord.push_back(*prv - exp1);
 
+                    //Build LHS word
                     std::vector<short> targetWord = baseWord;
                     int m = lettersTraversed / 2; //number of blocks already present
                     ///baseWord.push_back(exp2); Replaced by line below
@@ -480,12 +571,14 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         targetWord.push_back(exp2);
                     }
 
+                    //Build nodes representing words
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
 
                     std::list<Node>::iterator plft = nodeList.end();
                     plft--;
                     std::list<Node>::iterator prt = searchNodes(&rightWord);
+
                     //Function will return, or attempt to use searchPath() to find the RHS node,
                     //depending on the value of the bool passed in
                     if (useSearchPath)
@@ -509,14 +602,19 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         return;
                     }
 
+                    //Build and store identity
                     Identity id (plft, prt, baseNode);
                     identityBank.push_back(id);
 
                 }
-                else //if *prv < exp1; note that it cannot be equal, as that would put it in a previous case
+                else //if *prv < exp1; note that it cannot be equal, as that would put us in a previous case
                 {
-                    //in this case we cannot separate r^*prv so we leave it. note block is inverted
 
+                    //In this case the nonconf syllable is r^k and k < e1. Form identity
+                    //      g(s^(e2)r^(e1))^(n-m) = u'r^k
+                    //where u' is the part of g before the nonconf syllable (m is defined below).
+
+                    //Build RHS word
                     std::vector<short> rightWord;
                     std::vector<short>::reverse_iterator pv = startSeg.rend();
                     pv--;
@@ -524,6 +622,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         rightWord.push_back(*pv);
                     rightWord.push_back(*prv);
 
+                    //Build LHS word
                     std::vector<short> targetWord = baseWord;
                     int m = lettersTraversed / 2; //number of blocks already present
                     for (int i = 1; i <= exponent - m; i++)
@@ -532,6 +631,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         targetWord.push_back(exp1);
                     }
 
+                    //Build nodes representing words
                     Node lftNode(targetWord);
                     nodeList.push_back(lftNode);
 
@@ -561,6 +661,7 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                         return;
                     }
 
+                    //Build and store identity
                     Identity id (plft, prt, baseNode);
                     identityBank.push_back(id);
 
@@ -568,13 +669,18 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
             }
         }
-    }
-    else //if exp1 < exp3
+    } //end of subcase e1 = e3
+
+    //Subcase: e1 < e3
+    else
     {
-        //separate s^exp2 into s^(exp2-i)s^i
+
+        //In this case, for 0 <= i < n, form identities:
+        //      g(s^(e2-i)r^(e3))^(n-1) = ur^(e1)s^i
+        //Each value of i gives a new identity.
 
 
-        //handle i=0 as special case
+        //Handle i=0 as special case
         std::vector<short> rightWord = baseWord;
         rightWord.pop_back();
         rightWord.pop_back();
@@ -591,7 +697,8 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
         std::list<Node>::iterator plft = nodeList.end();
         plft--;
-        std::list<Node>::iterator prt = searchNodes(&rightWord);
+        ///std::list<Node>::iterator prt = searchNodes(&rightWord);
+        std::list<Node>::iterator prt = pnull;
         if (prt == pnull)
         {
 
@@ -619,10 +726,12 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
             }
         }
 
+        //Build and store identity
         Identity id (plft, prt, baseNode);
         identityBank.push_back(id);
 
-        //now do i >= 1
+
+        //Handle i >= 1
         for (int i = 1; i < exp2; i++)
         {
             std::vector<short> rightWord = baseWord;
@@ -642,7 +751,8 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
 
             std::list<Node>::iterator plft = nodeList.end();
             plft--;
-            std::list<Node>::iterator prt = searchNodes(&rightWord);
+            ///std::list<Node>::iterator prt = searchNodes(&rightWord);
+            std::list<Node>::iterator prt = pnull;
             if (prt == pnull)
             {
                 //Function will return, or attempt to use searchPath() to find the RHS node,
@@ -669,10 +779,11 @@ void Graph::generateIdentities(std::list<Node>::iterator baseNode, bool useSearc
                 }
             }
 
+            //Build and store identity
             Identity id (plft, prt, baseNode);
             identityBank.push_back(id);
         }
-    }
+    } //end of subcase e1 < e3
 }
 
 
@@ -860,6 +971,11 @@ bool Graph::destroyPath(std::list<Node>::iterator pbaseNode, std::list<Node>::it
     if (baseContained == false)
         return false;
 
+
+    ///
+    ///This is the original system which uses links between nodes to delete path;
+    ///this was found to be less efficient than searching for nodes.
+    ///
     //Path is valid and length > 1, so begin deletion
     /*
     std::cout << "\ndestroyPath() REPORT:\n";
@@ -1077,7 +1193,9 @@ bool Graph::destroyPath(std::list<Node>::iterator pbaseNode, std::list<Node>::it
         return true;
     }
     */
-    ///New (test; tentatively accepted) implementation that searches for nodes to delete
+    ///
+    ///End of original system
+    ///
 
     std::list<Node>::iterator pdelNode = ptargetNode;
     while (targetWord.size() != baseWord.size()) //stop at last exponent of baseWord
